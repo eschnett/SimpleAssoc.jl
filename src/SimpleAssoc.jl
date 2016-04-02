@@ -22,12 +22,9 @@ collection is searched only infrequently.
 type AssocArray{K,V} <: Associative{K,V}
     elems::Vector{Pair{K,V}}
     AssocArray() = new(Pair{K,V}[])
+    AssocArray(elem::Pair) = new(Pair{K,V}[elem])
     function AssocArray(iter)
-        a = AssocArray{K,V}()
-        for it in iter
-            a[it[1]] = it[2]
-        end
-        new(a.elems)
+        new(unique(p->p.first, map(el->el[1]=>el[2], iter)))
     end
     AssocArray(elems::Pair...) = AssocArray{K,V}(elems)
     AssocArray(a::AssocArray) = new(copy(a.elems))
