@@ -1,32 +1,12 @@
 module SimpleAssoc
 
-immutable AssocTuple{N,K,T} <: Associative{K,T}
-    elems::NTuple{N, Pair{K,T}}
-end
+import Base: copy, delete!, done, eachindex, eltype, empty!, get!,
+    get, getkey, haskey, isempty, keys, length, next, pop!, setindex!,
+    start, values
+
+export AssocArray, AssocTuple
 
 ################################################################################
-
-import Base:
-    copy,
-    delete!,
-    done,
-    eachindex,
-    eltype,
-    empty!,
-    get!,
-    get,
-    getkey,
-    haskey,
-    isempty,
-    keys,
-    length,
-    next,
-    pop!,
-    setindex!,
-    start,
-    values
-
-export AssocArray
 
 """
     type AssocArray{K,V}
@@ -41,18 +21,16 @@ collection is searched only infrequently.
 """
 type AssocArray{K,V} <: Associative{K,V}
     elems::Vector{Pair{K,V}}
-    AssocArray() = new(Vector{Pair{K,V}}())
+    AssocArray() = new(Pair{K,V}[])
     function AssocArray(iter)
-        elems = Pair{K,V}[el[1]=>el[2] for el in iter]
-        new(elems)
+        a = AssocArray{K,V}()
+        for it in iter
+            a[it[1]] = it[2]
+        end
+        new(a.elems)
     end
-    function AssocArray(elems::Pair...)
-        elems = Pair{K,V}[el for el in elems]
-        new(elems)
-    end
-    function AssocArray(a::AssocArray)
-        new(copy(a.elems))
-    end
+    AssocArray(elems::Pair...) = AssocArray{K,V}(elems)
+    AssocArray(a::AssocArray) = new(copy(a.elems))
 end
 
 function AssocArray(iter)

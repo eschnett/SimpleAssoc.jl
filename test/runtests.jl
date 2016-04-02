@@ -62,6 +62,16 @@ end
 @test itercmp(eachindex(a1), keys(a1))
 @test itercmp(eachindex(a2), keys(a2))
 
+# Duplicate keys
+b1 = AssocArray{Char,Int}([('a',1), ('a',2), ('b',2), ('a',1)])
+@test itercmp(b1, a2)
+b2 = AssocArray{Char,Int}('a'=>1, 'a'=>2, 'b'=>2, 'a'=>1)
+@test itercmp(b2, a2)
+b3 = AssocArray([('a',1), ('a',2), ('b',2), ('a',1)])
+@test itercmp(b3, a2)
+b4 = AssocArray('a'=>1, 'a'=>2, 'b'=>2, 'a'=>1)
+@test itercmp(b4, a2)
+
 # Mutating operations
 empty!(a0)
 @test isempty(a0)
