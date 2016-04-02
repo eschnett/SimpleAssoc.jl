@@ -1,6 +1,9 @@
 using SimpleAssoc
 using Base.Test
 
+"Compare two iterables without regard to order"
+itercmp(i1, i2) = isequal(sort(collect(i1)), sort(collect(i2)))
+
 ################################################################################
 
 # Constructors
@@ -48,11 +51,6 @@ a0 = AssocArray()
 @test length(a2) == 2
 
 # Iterators
-"Compare two iterables without regard to order"
-function itercmp(i1, i2)
-    c1, c2 = collect(i1), collect(i2)
-    length(c1) == length(c2) && isequal(Set(c1), Set(c2))
-end
 
 @test itercmp(a0, Pair{Char,Int}[])
 @test itercmp(a1, Pair{Pair{Char,Int}, Pair{Char,Int}}[('a'=>1) => ('b'=>2)])
@@ -149,3 +147,90 @@ push!(a4, y)
 @test length(a4) == 2
 
 @test isequal(a4, a4c)
+
+################################################################################
+
+# Constructors
+
+t0 = AssocTuple{Char,Int,0}()
+t1 = AssocTuple{Char,Int,1}('a'=>1)
+t2 = AssocTuple{Char,Int,1}('a'=>1.0)
+
+t0 = AssocTuple{Char,Int}()
+t1 = AssocTuple{Char,Int}('a'=>1)
+t2 = AssocTuple{Char,Int}('a'=>1.0)
+
+t0 = AssocTuple()
+t1 = AssocTuple('a'=>1)
+t2 = AssocTuple('a'=>1.0)
+
+# Deducing the element type
+t1 = AssocTuple('a'=>1)
+@test isa(t1, AssocTuple{Char,Int})
+t2 = AssocTuple('a'=>1, 'b'=>2)
+@test isa(t2, AssocTuple{Char,Int})
+
+# Constructing from a Pair vs. constructing from an iterator
+t1 = AssocTuple(('a'=>1) => ('b'=>2))
+@test isa(t1, AssocTuple{Pair{Char,Int}, Pair{Char,Int}})
+t2 = AssocTuple(('a'=>1), ('b'=>2))
+@test isa(t2, AssocTuple{Char,Int})
+t3 = AssocTuple((('a'=>1), ('b'=>2)))
+@test isa(t3, AssocTuple{Char,Int})
+t4 = AssocTuple(Pair{Char,Int}[('a'=>1), ('b'=>2)])
+@test isa(t4, AssocTuple{Char,Int})
+t5 = AssocTuple((('a',1), ('b',2)))
+@test isa(t5, AssocTuple{Char,Int})
+t6 = AssocTuple([('a',1), ('b',2)])
+@test isa(t6, AssocTuple{Char,Int})
+
+# Type properties
+t0 = AssocTuple{Char,Int}()
+@test eltype(t0) === Pair{Char,Int}
+t0 = AssocTuple()
+@test eltype(t0) === Pair{Any,Any}
+@test eltype(t1) === Pair{Pair{Char,Int}, Pair{Char,Int}}
+@test eltype(t2) === Pair{Char,Int}
+
+# Object properties
+@test isempty(t0)
+@test !isempty(t1)
+@test !isempty(t2)
+@test length(t0) == 0
+@test length(t1) == 1
+@test length(t2) == 2
+
+# Iterators
+@test itercmp(t0, Pair{Char,Int}[])
+@test itercmp(t1, Pair{Pair{Char,Int}, Pair{Char,Int}}[('a'=>1) => ('b'=>2)])
+@test itercmp(t2, Pair{Char,Int}[('a'=>1), ('b'=>2)])
+
+@test itercmp(keys(t0), Char[])
+@test itercmp(keys(t1), Pair{Char,Int}['a'=>1])
+@test itercmp(keys(t2), Char['a', 'b'])
+
+@test itercmp(values(t0), Int[])
+@test itercmp(values(t1), Pair{Char,Int}['b'=>2])
+@test itercmp(values(t2), Int[1, 2])
+
+@test itercmp(eachindex(t0), keys(t0))
+@test itercmp(eachindex(t1), keys(t1))
+@test itercmp(eachindex(t2), keys(t2))
+
+# Duplicate keys
+u1 = AssocTuple{Char,Int}([('a',1), ('a',2), ('b',2), ('a',1)])
+@test itercmp(u1, t2)
+u2 = AssocTuple{Char,Int}('a'=>1, 'a'=>2, 'b'=>2, 'a'=>1)
+@test itercmp(u2, t2)
+u3 = AssocTuple([('a',1), ('a',2), ('b',2), ('a',1)])
+@test itercmp(u3, t2)
+u4 = AssocTuple('a'=>1, 'a'=>2, 'b'=>2, 'a'=>1)
+@test itercmp(u4, t2)
+
+# Element-wise access
+
+@test_throws KeyError t0['a']
+@test t1['a'=>1] == ('b'=>2)
+@test t2['a'] == 1
+@test t2['b'] == 2
+@test_throws KeyError t2['c']
