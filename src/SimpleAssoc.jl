@@ -33,6 +33,18 @@ type AssocArray{K,V} <: Associative{K,V}
     AssocArray(a::AssocArray) = new(copy(a.elems))
 end
 
+"""
+    unsafe_convert(::Type{AssocArray}, elems::Vector{Pair})
+
+Create an `AssocArray` from an array `elems`, without checking for
+duplicate elements, and without copying the array.
+"""
+function unsafe_convert{K,V}(::Type{AssocArray{K,V}}, elems::Vector{Pair{K,V}})
+    a = AssocArray{K,V}()
+    a.elems = elems
+    a
+end
+
 function AssocArray(iter)
     K = fieldtype(eltype(iter),1)
     V = fieldtype(eltype(iter),2)
