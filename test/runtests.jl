@@ -139,6 +139,7 @@ x = pop!(a4)
 @test length(a4) == 1
 y = pop!(a4)
 @test length(a4) == 0
+@test_throws BoundsError pop!(a4)
 @test x != y
 
 push!(a4, x)
@@ -234,3 +235,15 @@ u4 = AssocTuple('a'=>1, 'a'=>2, 'b'=>2, 'a'=>1)
 @test t2['a'] == 1
 @test t2['b'] == 2
 @test_throws KeyError t2['c']
+
+@test !haskey(t0, 'a')
+@test get(t0, 'a', 2) == 2
+@test haskey(t2, 'a')
+@test haskey(t2, 'b')
+@test !haskey(t2, 'c')
+@test get(t2, 'a', 4) == 1
+@test get(t2, 'b', 4) == 2
+@test get(t2, 'c', 4) == 4
+@test getkey(t2, 'a', 4) == 'a'
+@test getkey(t2, 'b', 4) == 'b'
+@test getkey(t2, 'c', 4) == 4
