@@ -77,6 +77,8 @@ next(a::AssocArray, st) = next(a.elems, st)
 immutable AssocArrayIter{I,K,V}
     arr::AssocArray{K,V}
 end
+eltype{I}(ai::AssocArrayIter{I}) = fieldtype(eltype(ai.arr), I)
+length(ai::AssocArrayIter) = length(ai.arr)
 start(ai::AssocArrayIter) = start(ai.arr.elems)
 done(ai::AssocArrayIter, st) = done(ai.arr.elems, st)
 function next{I}(ai::AssocArrayIter{I}, st)
