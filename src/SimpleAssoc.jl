@@ -24,7 +24,7 @@ type AssocArray{K,V} <: Associative{K,V}
     AssocArray() = new(Pair{K,V}[])
     AssocArray(elem::Pair) = new(Pair{K,V}[elem])
     function AssocArray(iter)
-        new(unique(p->p.first, map(el->el[1]=>el[2], iter)))
+        new(unique(p->p.first, [it[1]=>it[2] for it in iter]))
     end
     AssocArray(elems::Pair...) = AssocArray{K,V}(elems)
     AssocArray(a::AssocArray) = new(copy(a.elems))
@@ -42,13 +42,13 @@ function unsafe_convert{K,V}(::Type{AssocArray{K,V}}, elems::Vector{Pair{K,V}})
     a
 end
 
-function AssocArray(iter)
+function (::Type{AssocArray})(iter)
     K = fieldtype(eltype(iter),1)
     V = fieldtype(eltype(iter),2)
     AssocArray{K,V}(iter)
 end
-AssocArray(a::AssocArray) = AssocArray{keytype(a), valtype(a)}(a)
-AssocArray(elems::Pair...) = AssocArray(elems)
+(::Type{AssocArray}){K,V}(a::AssocArray{K,V}) = AssocArray{K,V}(a)
+(::Type{AssocArray})(elems::Pair...) = AssocArray(elems)
 
 copy(a::AssocArray) = AssocArray(a)
 
