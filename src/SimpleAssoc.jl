@@ -58,14 +58,17 @@ next(a::AssocArray, st) = next(a.elems, st)
 immutable AssocArrayIter{I,K,V}
     arr::AssocArray{K,V}
 end
-start(ai::AssocArrayIter) = start(ai.arr.elems)
-done(ai::AssocArrayIter, st) = done(ai.arr.elems, st)
+eltype{I}(ai::AssocArrayIter{I}) = fieldtype(eltype(ai.arr), I)
+isempty(ai::AssocArrayIter) = isempty(ai.arr)
+length(ai::AssocArrayIter) = length(ai.arr)
+start(ai::AssocArrayIter) = start(ai.arr)
+done(ai::AssocArrayIter, st) = done(ai.arr, st)
 function next{I}(ai::AssocArrayIter{I}, st)
-    it, st = next(ai.arr.elems, st)
-    it[I], st
+    it, st = next(ai.arr, st)
+    getfield(it, I), st
 end
-keys{K,V}(a::AssocArray{K,V}) = AssocArrayIter{1,K,V}(a)
-values{K,V}(a::AssocArray{K,V}) = AssocArrayIter{2,K,V}(a)
+keys{K,V}(a::AssocArray{K,V}) = AssocArrayIter{:first,K,V}(a)
+values{K,V}(a::AssocArray{K,V}) = AssocArrayIter{:second,K,V}(a)
 eachindex(a::AssocArray) = keys(a)
 
 empty!(a::AssocArray) = empty!(a.elems)
@@ -198,16 +201,18 @@ done(a::AssocTuple, st) = done(a.elems, st)
 next(a::AssocTuple, st) = next(a.elems, st)
 
 immutable AssocTupleIter{I,K,V}
-    arr::AssocTuple{K,V}
+    tup::AssocTuple{K,V}
 end
-start(ai::AssocTupleIter) = start(ai.arr.elems)
-done(ai::AssocTupleIter, st) = done(ai.arr.elems, st)
+eltype{I}(ai::AssocTupleIter{I}) = fieldtype(eltype(ai.tup), I)
+length(ai::AssocTupleIter) = length(ai.tup)
+start(ai::AssocTupleIter) = start(ai.tup)
+done(ai::AssocTupleIter, st) = done(ai.tup, st)
 function next{I}(ai::AssocTupleIter{I}, st)
-    it, st = next(ai.arr.elems, st)
-    it[I], st
+    it, st = next(ai.tup, st)
+    getfield(it, I), st
 end
-keys{K,V}(a::AssocTuple{K,V}) = AssocTupleIter{1,K,V}(a)
-values{K,V}(a::AssocTuple{K,V}) = AssocTupleIter{2,K,V}(a)
+keys{K,V}(a::AssocTuple{K,V}) = AssocTupleIter{:first,K,V}(a)
+values{K,V}(a::AssocTuple{K,V}) = AssocTupleIter{:second,K,V}(a)
 eachindex(a::AssocTuple) = keys(a)
 
 # function pop{K,V,N}(a::AssocTuple{K,V,N})
