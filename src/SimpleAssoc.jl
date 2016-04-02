@@ -22,33 +22,26 @@ collection is searched only infrequently.
 type AssocArray{K,V} <: Associative{K,V}
     elems::Vector{Pair{K,V}}
     AssocArray() = new(Pair{K,V}[])
-    AssocArray(elem::Pair) = new(Pair{K,V}[elem])
-    function AssocArray(iter)
-        new(unique(p->p.first, [it[1]=>it[2] for it in iter]))
-    end
-    AssocArray(elems::Pair...) = AssocArray{K,V}(elems)
+    AssocArray(elem::Pair{K,V}) = new([elem])
+    AssocArray(elems::Dict{K,V}) = new(collect(elems))
     AssocArray(a::AssocArray) = new(copy(a.elems))
 end
 
-"""
-    unsafe_convert(::Type{AssocArray}, elems::Vector{Pair})
-
-Create an `AssocArray` from an array `elems`, without checking for
-duplicate elements, and without copying the array.
-"""
-function unsafe_convert{K,V}(::Type{AssocArray{K,V}}, elems::Vector{Pair{K,V}})
-    a = AssocArray{K,V}()
-    a.elems = elems
-    a
+function (::Type{AssocArray{K,V}}){K,V}(elem::Pair)
+    AssocArray{K,V}(Pair{K,V}(K(elem.first) => V(elem.second)))
 end
+(::Type{AssocArray{K,V}}){K,V}(iter) = AssocArray{K,V}(Dict{K,V}(iter))
+(::Type{AssocArray{K,V}}){K,V}(elems::Pair...) = AssocArray{K,V}(elems)
 
+(::Type{AssocArray}){K,V}(elem::Pair{K,V}) = AssocArray{K,V}(elem)
 function (::Type{AssocArray})(iter)
-    K = fieldtype(eltype(iter),1)
-    V = fieldtype(eltype(iter),2)
-    AssocArray{K,V}(iter)
+    dict = Dict(iter)
+    K = keytype(dict)
+    V = valtype(dict)
+    AssocArray{K,V}(dict)
 end
-(::Type{AssocArray}){K,V}(a::AssocArray{K,V}) = AssocArray{K,V}(a)
 (::Type{AssocArray})(elems::Pair...) = AssocArray(elems)
+(::Type{AssocArray}){K,V}(a::AssocArray{K,V}) = AssocArray{K,V}(a)
 
 copy(a::AssocArray) = AssocArray(a)
 
@@ -64,8 +57,6 @@ next(a::AssocArray, st) = next(a.elems, st)
 immutable AssocArrayIter{I,K,V}
     arr::AssocArray{K,V}
 end
-eltype{I}(ai::AssocArrayIter{I}) = fieldtype(eltype(ai.arr), I)
-length(ai::AssocArrayIter) = length(ai.arr)
 start(ai::AssocArrayIter) = start(ai.arr.elems)
 done(ai::AssocArrayIter, st) = done(ai.arr.elems, st)
 function next{I}(ai::AssocArrayIter{I}, st)
@@ -112,14 +103,14 @@ function get!(a::AssocArray, k, d)
     a[k] = d
 end
 
-function setindex!(a::AssocArray, v, k)
+function setindex!{K,V}(a::AssocArray{K,V}, v, k)
     for i in eachindex(a.elems)
         if a.elems[i].first === k
-            a.elems[i] = k => v
+            a.elems[i] = Pair{K,V}(K(k), V(v))
             return v
         end
     end
-    push!(a.elems, k => v)
+    push!(a.elems, Pair{K,V}(K(k), V(v)))
     v
 end
 

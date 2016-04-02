@@ -1,12 +1,17 @@
 using SimpleAssoc
 using Base.Test
 
+################################################################################
+
 # Constructors
 a0 = AssocArray{Char,Int}()
 a1 = AssocArray{Char,Int}('a'=>1)
+a1f = AssocArray{Char,Int}('a'=>1.0)
 a2 = AssocArray{Char,Int}('a'=>1, 'b'=>2)
 
 # Deducing the element type
+a0 = AssocArray()
+@test isa(a0, AssocArray{Any,Any})
 a1 = AssocArray('a'=>1)
 @test isa(a1, AssocArray{Char,Int})
 a2 = AssocArray('a'=>1, 'b'=>2)
@@ -27,7 +32,10 @@ a6 = AssocArray([('a',1), ('b',2)])
 @test isa(a6, AssocArray{Char,Int})
 
 # Type properties
+a0 = AssocArray{Char,Int}()
 @test eltype(a0) === Pair{Char,Int}
+a0 = AssocArray()
+@test eltype(a0) === Pair{Any,Any}
 @test eltype(a1) === Pair{Pair{Char,Int}, Pair{Char,Int}}
 @test eltype(a2) === Pair{Char,Int}
 
